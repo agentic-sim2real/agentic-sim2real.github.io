@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Diagnosis of Robotic Sim-to-Real Gap</title>
+<meta name="description" content="Can an LLM agent diagnose and close a sim-to-real gap? Eight sim-to-sim tasks with MuJoCo as the simulator and Isaac Lab PhysX standing in for the real robot, with hidden parameter changes; the agent must state a diagnosis before it changes anything.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<script src="data/figs.js"></script>
+<script src="data/teaser.js"></script>
+<script src="data/cube.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+<div class="topbar">
+  <nav><a href="#before-after">Videos</a><a href="#how">Setup</a><a href="#results">Results</a><a href="#trial">Trial</a></nav>
+</div>
+
+<header class="hero classic" id="top">
+  <h1>Agentic Diagnosis of Robotic Sim-to-Real Gap</h1>
+  <p class="sub">When an LLM agent improves sim-to-real transfer, does its diagnosis identify the underlying mismatch?</p>
+  <div class="authors"><span class="ph">[Authors]</span></div>
+  <div class="links">
+    <a href="#paper" title="to be added"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg>Paper</a>
+    <a href="#code" title="to be added"><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M13 5l-2 14"/></svg>Code</a>
+  </div>
+</header>
+
+<section class="teaser">
+  <figure>
+    <div class="teaser-wrap">
+      <video id="teaser" src="video/teaser.mp4?v=1793125545" poster="video/teaser.jpg?v=1793125545" autoplay muted loop playsinline preload="metadata"></video>
+      <i class="divider"></i>
+      <div class="ov tl"><span>zero-shot policy</span></div>
+      <div class="ov tr"><span>after the agent</span></div>
+      <div class="ov bl"><b data-id="s0">0%</b><small data-id="spA"></small></div>
+      <div class="ov br"><b data-id="s1">100%</b><small data-id="spB"></small></div>
+    </div>
+    <div class="segs-head"><span data-id="mode">All eight tasks, in turn</span><button type="button" data-id="all" hidden>Play all</button></div>
+    <div class="segs" id="teaser-segs"></div>
+    <figcaption>Each task in the target environment (Isaac Lab PhysX): the zero-shot policy on the left, the agent’s final policy on the right. The percentages are success rates on 25 held-out initial states. Click a task to watch it on repeat.</figcaption>
+  </figure>
+</section>
+
+<section class="lead-wrap"><p class="lead">A policy trained in simulation can perform far worse on a real robot. Domain randomization and system identification narrow this gap, but a researcher still has to decide which parameters to randomize or estimate. We ask whether an LLM agent can take over part of that work by reasoning about the physics the way a researcher would: comparing paired rollouts, writing down a diagnosis, and only then changing the simulator or the policy.</p>
+  <p class="lead">The true gap of a physical robot is unknown, so we study the question in 8 controlled sim-to-sim tasks. MuJoCo is the agent’s source simulator and Isaac Lab with PhysX stands in for the real environment. The engines differ in contact dynamics, and in 7 tasks we also changed a parameter of the PhysX setup and hid the change from the agent. Within a budget of 20 to 30 episodes per task, the agent must state a diagnosis after every deployment before it edits anything. We then score two things separately: whether the final policy beats the zero-shot one, and whether the final diagnosis identifies the hidden change. One does not imply the other.</p>
+  <p class="notice" style="margin-top:26px"><b>All experiments are simulated.</b> MuJoCo is the agent’s source simulator and Isaac Lab with PhysX stands in for the real robot. The two engines differ in contact dynamics, and in 7 of the 8 tasks we also changed one or two parameters of the PhysX setup without telling the agent.</p></section>
+
+<section id="before-after"><h2>The eight tasks, before and after the agent</h2>
+  <p class="sec-sub">For each task, the zero-shot policy on the left and the agent’s final policy on the right, both in PhysX on one of the scored initial states. The percentages are success rates on the 25 held-out states. Under each pair, the agent’s final diagnosis, quoted from its run.</p>
+  <div class="grid8">
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/striker/real_ep0026.jpg" alt=""><video src="video/striker/real_ep0026.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">half speed</i></span><b>0%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/striker/real_ep0085.jpg" alt=""><video src="video/striker/real_ep0085.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">half speed</i></span><b>100%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>Strike</b> · puck friction ×0.25</span><span class="num">0% <span class="arrow">→</span> 100% <small>on 25 held-out starts</small></span></div><p class="said">“Lower sliding friction between puck and table on the real system: the puck decelerates ~2.9× less after release, about 0.34× nominal.”<cite>final diagnosis · true change: puck friction ×0.25</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/pick/real_ep0026.jpg" alt=""><video src="video/pick/real_ep0026.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">real time</i></span><b>28%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/pick/real_ep0085.jpg" alt=""><video src="video/pick/real_ep0085.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">real time</i></span><b>100%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>PickPlace</b> · camera roll 3.0°, shift 18 mm</span><span class="num">28% <span class="arrow">→</span> 100% <small>on 25 held-out starts</small></span></div><p class="said">“The real camera’s position or angle differs from what the perception software assumes: reported cube positions are shifted by about −0.6 cm in x and −2.2 cm in y.”<cite>final diagnosis · true change: camera roll 3.0°, shift 18 mm</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/insert/real_ep0026.jpg" alt=""><video src="video/insert/real_ep0026.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">real time</i></span><b>24%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/insert/real_ep0141.jpg" alt=""><video src="video/insert/real_ep0141.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">2× speed</i></span><b>100%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>Insert</b> · cube mass ×8.3</span><span class="num">24% <span class="arrow">→</span> 100% <small>on 25 held-out starts</small></span></div><p class="said">“The real cube is most likely heavier than the simulated one, roughly 2–4×. I can’t measure mass directly, so the number is a rough estimate.”<cite>final diagnosis · true change: cube mass ×8.3</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/push/real_ep0027.jpg" alt=""><video src="video/push/real_ep0027.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">real time</i></span><b>48%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/push/real_ep0055.jpg" alt=""><video src="video/push/real_ep0055.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">2× speed</i></span><b>100%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>Push</b> · servo ×0.6, damping ×2.5</span><span class="num">48% <span class="arrow">→</span> 100% <small>on 25 held-out starts</small></span></div><p class="said">“The arm’s joint motors are weaker than in the simulator: roughly 0.4–0.6× the nominal stiffness.”<cite>final diagnosis · true change: servo ×0.6 and damping ×2.5; the damping was not named</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/cube/real_ep0001.jpg" alt=""><video src="video/cube/real_ep0001.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">2× speed</i></span><b>36%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/cube/real_ep0029.jpg" alt=""><video src="video/cube/real_ep0029.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">2× speed</i></span><b>76%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>Reorient</b> · cube mass ×2.5</span><span class="num">36% <span class="arrow">→</span> 76% <small>on 25 held-out starts</small></span></div><p class="said">“The cube on the real robot has 2.5× the mass and inertia of my simulator’s cube: measured directly, not fitted.”<cite>final diagnosis · true change: cube mass ×2.5</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/valve/real_ep0001.jpg" alt=""><video src="video/valve/real_ep0001.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">2× speed</i></span><b>0%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/valve/real_ep0018.jpg" alt=""><video src="video/valve/real_ep0018.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">2× speed</i></span><b>100%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>Valve</b> · hinge damping ×3</span><span class="num">0% <span class="arrow">→</span> 100% <small>on 25 held-out starts</small></span></div><p class="said">“The real valve is about three times more viscously damped than my simulator’s: point estimate 3.15.”<cite>final diagnosis · true change: hinge damping ×3</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/spin/real_ep0009.jpg" alt=""><video src="video/spin/real_ep0009.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">2× speed</i></span><b>0%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/spin/real_ep0022.jpg" alt=""><video src="video/spin/real_ep0022.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">2× speed</i></span><b>92%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>Spin</b> · none, the engine alone · <span class="no">✗ misattribution</span></span><span class="num">0% <span class="arrow">→</span> 92% <small>on 25 held-out starts</small></span></div><p class="said">“The cube’s sliding friction coefficient is roughly 3–4× higher on the real robot than in my simulator.”<cite><span class="no">✗</span> final diagnosis · no parameter was changed; the friction coefficient is the same in both engines</cite></p></div>
+    <div class="cell"><div class="pair">
+      <figure class="before"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/handover/real_ep0008.jpg" alt=""><video src="video/handover/real_ep0008.mp4" muted playsinline preload="none"></video><figcaption><span>zero-shot policy <i class="spd">half speed</i></span><b>16%</b></figcaption></figure>
+      <figure class="after"><span class="tag"><i></i>PhysX · real world</span><img class="poster" src="video/handover/real_ep0021.jpg" alt=""><video src="video/handover/real_ep0021.mp4" muted playsinline preload="none"></video><figcaption><span>after the agent <i class="spd">half speed</i></span><b>64%</b></figcaption></figure>
+    </div>
+      <div class="cap"><span><b>HandOver</b> · gripper servo ×0.4</span><span class="num">16% <span class="arrow">→</span> 64% <small>on 25 held-out starts</small></span></div><p class="said">“The two gripper position servos have about 40% of the simulated stiffness: setting it to 0.4 made the sim finger trajectory match the real one digit-for-digit.”<cite>final diagnosis · true change: gripper servo ×0.4</cite></p></div>
+  </div></section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <p class="sec-sub">The agent can evaluate policies in MuJoCo, change simulator parameters, and update policies. It deploys batches of 3 to 10 episodes in PhysX, within a total budget of 20 to 30 per task, and each episode is paired with a simulated one from the same initial state. It may also run open-loop replays and diagnostic probes that send identical commands to both worlds. After each deployment it has to state a diagnosis: candidate causes with an estimated direction, magnitude and confidence, or discrepancies it cannot explain. Only then may it change the simulator or the policy.</p>
+  <figure class="fig1">
+    <div class="fig1-grid">
+      <div class="loop-scroll"><svg class="loop" viewBox="0 0 640 330" role="img" aria-label="The agent between its MuJoCo simulator and the PhysX real world">
+        <defs>
+          <marker id="ah-sim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--sim)"/></marker>
+          <marker id="ah-real" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--real)"/></marker>
+          <marker id="ah-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--ink2)"/></marker>
+        </defs>
+        <rect class="box sim" x="1" y="8" width="560" height="56" rx="8"/>
+        <text x="18" y="42"><tspan class="ttl sim">MuJoCo</tspan><tspan class="t2 sim"> (agent’s simulator)</tspan><tspan class="t1">: named values θ, policy</tspan></text>
+        <path class="arr sim" d="M72 64 V110" marker-end="url(#ah-sim)"/><text class="t2" x="84" y="92">set θ, train or write policy</text>
+        <path class="arr sim" d="M400 112 V66" marker-end="url(#ah-sim)"/><text class="t2" x="412" y="92">sim results</text>
+        <rect class="box agent" x="1" y="112" width="560" height="112" rx="8"/>
+        <text class="ttl" x="18" y="140">Language-model agent</text>
+        <rect class="inner" x="24" y="158" width="92" height="34" rx="6"/><text class="st" x="70" y="180" text-anchor="middle">deploy</text>
+        <rect class="inner" x="156" y="158" width="102" height="34" rx="6"/><text class="st" x="207" y="180" text-anchor="middle">diagnose</text>
+        <rect class="inner" x="298" y="158" width="102" height="34" rx="6"/><text class="st" x="349" y="180" text-anchor="middle">intervene</text>
+        <rect class="inner" x="440" y="158" width="98" height="34" rx="6"/><text class="st" x="489" y="180" text-anchor="middle">validate</text>
+        <path class="arr ink" d="M116 175 H154" marker-end="url(#ah-ink)"/><path class="arr ink" d="M258 175 H296" marker-end="url(#ah-ink)"/><path class="arr ink" d="M400 175 H438" marker-end="url(#ah-ink)"/>
+        <path class="arr ink" d="M489 192 V208 H70 V194" marker-end="url(#ah-ink)"/>
+        <path class="arr real" d="M72 224 V268" marker-end="url(#ah-real)"/><text class="t2" x="84" y="252">deploy</text>
+        <path class="arr real" d="M320 270 V226" marker-end="url(#ah-real)"/><text class="t2" x="332" y="252">paired real + sim episodes</text>
+        <rect class="box real" x="1" y="270" width="560" height="56" rx="8"/>
+        <text x="18" y="304"><tspan class="ttl real">PhysX</tspan><tspan class="t2 real"> (real world)</tspan><tspan class="t1">: same robot, hidden change δ</tspan></text>
+        <path class="arr real toworld" d="M562 298 H637" marker-end="url(#ah-real)"/>
+      </svg></div>
+      <div class="tasks8">
+        <div class="ghead">PhysX (real world)</div>
+        <figure><b>Strike</b><video src="video/striker/real_ep0026.mp4" poster="video/striker/real_ep0026.jpg" muted loop playsinline preload="metadata"></video><figcaption>puck friction ×0.25</figcaption></figure>
+        <figure><b>PickPlace</b><video src="video/pick/real_ep0026.mp4" poster="video/pick/real_ep0026.jpg" muted loop playsinline preload="metadata"></video><figcaption>camera roll 3.0°,<br>shift 18 mm</figcaption></figure>
+        <figure><b>Insert</b><video src="video/insert/real_ep0026.mp4" poster="video/insert/real_ep0026.jpg" muted loop playsinline preload="metadata"></video><figcaption>cube mass ×8.3</figcaption></figure>
+        <figure><b>Push</b><video src="video/push/real_ep0027.mp4" poster="video/push/real_ep0027.jpg" muted loop playsinline preload="metadata"></video><figcaption>servo ×0.6,<br>damping ×2.5</figcaption></figure>
+        <figure><b>Reorient</b><video src="video/cube/real_ep0001.mp4" poster="video/cube/real_ep0001.jpg" muted loop playsinline preload="metadata"></video><figcaption>cube mass ×2.5</figcaption></figure>
+        <figure><b>Valve</b><video src="video/valve/real_ep0001.mp4" poster="video/valve/real_ep0001.jpg" muted loop playsinline preload="metadata"></video><figcaption>hinge damping ×3</figcaption></figure>
+        <figure><b>Spin</b><video src="video/spin/real_ep0009.mp4" poster="video/spin/real_ep0009.jpg" muted loop playsinline preload="metadata"></video><figcaption><i>none (engine only)</i></figcaption></figure>
+        <figure><b>HandOver</b><video src="video/handover/real_ep0008.mp4" poster="video/handover/real_ep0008.jpg" muted loop playsinline preload="metadata"></video><figcaption>gripper servo ×0.4</figcaption></figure>
+      </div>
+    </div>
+    <figcaption class="caption"><b>Setup.</b> The agent compares MuJoCo and PhysX rollouts and records a diagnosis before it revises the simulator or the policy. PhysX has different physics and, in 7 tasks, a hidden parameter change. Right: the 8 tasks in PhysX under the zero-shot policy, each with its hidden change. Spin has none; there only the engines differ.</figcaption>
+  </figure>
+</section>
+
+<section id="results">
+  <h2>Results</h2>
+  <p class="sec-sub">The final policies improve on all 8 tasks and raise mean success from 19.0% to 91.5%. In all 7 tasks with a hidden change the final diagnosis identifies the changed parameter, except on Push, where it finds only one of the two (the actuator gain, not the damping). The estimates are within 5% of the true values on Reorient, Valve and HandOver. On Insert the agent estimates 2 to 4 times the mass rather than 8.3, and still reaches 100%. On Spin, where only the engines differ, it reaches 92% but blames a friction coefficient that is the same in both engines.</p>
+  <div class="table-scroll"><table class="results" id="results-table">
+    <thead><tr><th>Task</th><th>Hidden change</th><th class="n">Zero-shot</th><th class="n">Final</th><th>Final diagnosis</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <p class="results-foot">Table 1 of the paper. Success (%) of the zero-shot and final policies on 25 held-out initial conditions per task, and our judgement of the final diagnosis: <span class="ok">✓</span> correct · <span class="part pmark">✓</span> partially correct · <span class="no">✗</span> wrong.</p>
+</section>
+
+<section id="trial"><h2>One trial, step by step</h2>
+  <p class="sec-sub">Pick a task. The two panes show the agent’s MuJoCo simulator and the paired PhysX episode from the same initial state. The log on the right is the agent’s own trace, and the panel under the clips shows the evidence behind each step.</p>
+  <div class="tabs" id="trial-tabs"></div><div class="stage-host" id="trial-host" data-default="cube"></div></section>
+
+<section id="spin-case"><div class="callout"><h2>Success without a correct diagnosis</h2>
+  <p>On Spin nothing was changed; only the engines differ. The agent concluded that cube friction was “roughly 3-4x higher on the real robot” and reached 92% by randomizing friction over 1.1 to 1.7 during training (nominal 0.3). The configured friction coefficient was the same in both engines. <b>The agent found an intervention that works while misidentifying the cause.</b> A simulator parameter acted here as a compensatory control for the model mismatch, not as an estimate of a physical property.</p></div></section>
+
+<!-- BIBTEX (optional; enable by removing this comment and restoring the BibTeX button in the links row)
+<section id="bibtex">
+  <h2>BibTeX</h2>
+<pre class="bib">@inproceedings{zhu2026agentic,
+  title     = {Agentic Diagnosis of Robotic Sim-to-Real Gap},
+  author    = {Zhu, Zhiyuan},
+  booktitle = {Conference on Robot Learning (CoRL) 2026, Late-Breaking Results},
+  year      = {2026},
+  note      = {[placeholder: update once the abstract is accepted]}
+}</pre>
+</section>
+-->
+
+
+
+</div>
+<script src="js/charts.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/stage.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
